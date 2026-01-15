@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>ALPHA SOLUÇÕES | CRM</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root{--azul:#0b1d39;--azul2:#102a4e;--laranja:#ff8c1a}
+    body{font-family:Arial,sans-serif;background:var(--azul);margin:0;padding:20px;color:#fff}
+    .container{max-width:1200px;margin:auto}
+    h1{text-align:center}
+    h2{text-align:center;font-size:14px;color:#cfd8e3}
+    .card{background:var(--azul2);padding:20px;border-radius:14px;box-shadow:0 6px 15px rgba(0,0,0,.4);margin-bottom:20px}
+    input,select{padding:12px;margin:6px 0;width:100%;border-radius:10px;border:none}
+    button{padding:14px;width:100%;background:var(--laranja);color:#000;font-weight:bold;border:none;border-radius:12px;cursor:pointer}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border:1px solid #1f3b66;padding:8px}
+    th{background:#123b73}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .hidden{display:none}
+    footer{text-align:center;font-size:12px;color:#9fb4d1;margin-top:20px}
+    progress{width:100%;height:25px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+    .topbar button{width:auto;padding:10px 18px}
+    @media(max-width:800px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="container" id="loginBox">
+  <div class="card">
+    <h1>ALPHA SOLUÇÕES</h1>
+    <h2>Login do Sistema</h2>
+    <input id="login" placeholder="Usuário">
+    <input id="senha" type="password" placeholder="Senha">
+    <button onclick="entrar()">Entrar</button>
+    <p id="erro" style="color:#ffb3b3"></p>
+  </div>
+</div>
+
+<!-- CRM -->
+<div class="container hidden" id="crmBox">
+
+  <div class="topbar">
+    <div id="infoUsuario"></div>
+    <button onclick="sair()">Sair</button>
+  </div>
+
+  <h1>ALPHA SOLUÇÕES</h1>
+  <h2>Dashboard • Contatos • Agendamentos • Vendas</h2>
+
+  <!-- TROCAR SENHA -->
+  <div class="card">
+    <h3>Trocar Senha</h3>
+    <input id="novaSenha" type="password" placeholder="Nova senha">
+    <button onclick="trocarSenha()">Salvar Nova Senha</button>
+    <p id="msgSenha"></p>
+  </div>
+
+  <!-- RELATÓRIO (ADMIN) -->
+  <div class="card hidden" id="relatorioBox">
+    <h3>Relatórios</h3>
+    <button onclick="gerarRelatorioCSV()">Baixar Relatório (Excel)</button>
+    <button onclick="gerarRelatorioPDF()" style="margin-top:10px">Gerar Relatório (PDF)</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="card">
+    <h3>Dashboard de Vendas</h3>
+    <p>Total Vendido: R$ <span id="dashTotal">0</span></p>
+    <p>Meta Mensal: R$ <span id="dashMeta">0</span></p>
+    <p>Percentual Atingido: <span id="dashPerc">0%</span></p>
+    <progress id="barraMeta" value="0" max="100"></progress>
+  </div>
+
+  <!-- FUNIL DE VENDAS -->
+  <div class="card">
+    <h3>Funil de Vendas</h3>
+    <p>Leads: <strong><span id="fLead">0</span></strong></p>
+    <p>Em Atendimento: <strong><span id="fAtendimento">0</span></strong></p>
+    <p>Vendido: <strong><span id="fVendido">0</span></strong></p>
+  </div>
+
+  <!-- CADASTRO DE USUÁRIOS (ADMIN) -->
+  <div class="card hidden" id="userBox">
+    <h3>Cadastrar Usuário</h3>
+    <input id="novoUser" placeholder="Usuário">
+    <input id="novaSenhaUser" type="password" placeholder="Senha">
+    <select id="tipoUser">
+      <option value="vendedor">Vendedor</option>
+      <option value="admin">Admin</option>
+    </select>
+    <button onclick="cadastrarUsuario()">Cadastrar Usuário</button>
+    <p id="msgUser"></p>
+  </div>
+
+  <!-- META ADMIN -->
+  <div class="card hidden" id="metaBox">
+    <h3>Definir Meta</h3>
+    <input type="number" id="meta" placeholder="Meta mensal">
+    <button onclick="salvarMeta()">Salvar Meta</button>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Novo Contato</h3>
+      <input id="nome" placeholder="Nome">
+      <input id="telefone" placeholder="Telefone">
+      <input id="email" placeholder="Email">
+      <input id="vendedorContato" placeholder="Vendedor responsável">
+      <select id="status"><option>Lead</option><option>Em Atendimento</option><option>Vendido</option></select>
+      <input id="observacao" placeholder="Observações">
+      <button onclick="adicionarContato()">Adicionar</button>
+    </div>
+
+    <div class="card">
+      <h3>Agendamentos</h3>
+      <input id="agNome" placeholder="Nome do Contato">
+      <input type="date" id="agData">
+      <input type="time" id="agHora">
+      <input id="agObs" placeholder="Observação">
+      <button onclick="adicionarAgendamento()">Agendar</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Pesquisar Contatos</h3>
+    <input id="busca" placeholder="Buscar" onkeyup="listarContatos()">
+    <table>
+      <thead><tr><th>Nome</th><th>Telefone</th><th>Vendedor</th><th>Status</th><th>Obs</th><th>Venda</th><th>Ações</th></tr></thead>
+      <tbody id="listaContatos"></tbody>
+    </table>
+  </div>
+
+  <footer>Desenvolvido por ELBS_</footer>
+</div>
+
+<script>
+let usuarios=JSON.parse(localStorage.getItem('usuarios'))||[
+  {login:'admin',senha:'1234',tipo:'admin'},
+  {login:'vendedor1',senha:'1234',tipo:'vendedor'}
+];
+localStorage.setItem('usuarios',JSON.stringify(usuarios));
+
+let usuarioAtual=null;
+
+function entrar(){
+  const u=login.value,s=senha.value;
+  const user=usuarios.find(x=>x.login===u&&x.senha===s);
+  if(!user){erro.innerText='Usuário ou senha inválidos';return}
+  usuarioAtual=user;
+  localStorage.setItem('usuarioAtual',JSON.stringify(user));
+  loginBox.classList.add('hidden');crmBox.classList.remove('hidden');
+  infoUsuario.innerHTML=`Usuário: <strong>${user.login}</strong> (${user.tipo})`;
+  if(user.tipo==='admin'){metaBox.classList.remove('hidden');userBox.classList.remove('hidden');relatorioBox.classList.remove('hidden');}
+  atualizarDashboard();listarContatos();
+}
+
+if(localStorage.getItem('usuarioAtual')){
+  usuarioAtual=JSON.parse(localStorage.getItem('usuarioAtual'));
+  loginBox.classList.add('hidden');crmBox.classList.remove('hidden');
+  infoUsuario.innerHTML=`Usuário: <strong>${usuarioAtual.login}</strong> (${usuarioAtual.tipo})`;
+  if(usuarioAtual.tipo==='admin'){metaBox.classList.remove('hidden');userBox.classList.remove('hidden');relatorioBox.classList.remove('hidden');}
+}
+
+function sair(){localStorage.removeItem('usuarioAtual');location.reload()}
+
+function gerarRelatorioCSV(){
+  let csv='Nome,Telefone,Email,Vendedor,Status,Observações,Valor Venda
+';
+  contatos.forEach(c=>{
+    csv+=`${c.nome},${c.telefone},${c.email||''},${c.vendedor},${c.status},${c.obs||''},${c.venda||0}
+`;
+  });
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const link=document.createElement('a');
+  link.href=URL.createObjectURL(blob);
+  link.download='relatorio_alpha_solucoes.csv';
+  link.click();
+}
+
+function gerarRelatorioPDF(){
+  let html = `
+  <html><head><title>Relatório ALPHA SOLUÇÕES</title>
+  <style>
+    body{font-family:Arial;padding:20px}
+    h1{text-align:center}
+    table{width:100%;border-collapse:collapse;margin-top:20px}
+    th,td{border:1px solid #333;padding:6px;font-size:12px}
+    th{background:#eee}
+  </style>
+  </head><body>
+  <h1>ALPHA SOLUÇÕES</h1>
+  <p>Relatório de Contatos e Vendas</p>
+  <table>
+    <tr><th>Nome</th><th>Telefone</th><th>Vendedor</th><th>Status</th><th>Venda</th></tr>`;
+
+  contatos.forEach(c=>{
+    html += `<tr><td>${c.nome}</td><td>${c.telefone}</td><td>${c.vendedor}</td><td>${c.status}</td><td>R$ ${c.venda||0}</td></tr>`;
+  });
+
+  html += `</table></body></html>`;
+
+  const win = window.open('', '', 'width=900,height=650');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  win.print();
+},${c.telefone},${c.email||''},${c.vendedor},${c.status},${c.obs||''},${c.venda||0}
+`;
+  });
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const link=document.createElement('a');
+  link.href=URL.createObjectURL(blob);
+  link.download='relatorio_alpha_solucoes.csv';
+  link.click();
+}
+
+function cadastrarUsuario(){
+  const u=novoUser.value.trim();
+  const s=novaSenhaUser.value.trim();
+  const t=tipoUser.value;
+  if(!u||!s){msgUser.innerText='Preencha todos os campos';return}
+  if(usuarios.find(x=>x.login===u)){msgUser.innerText='Usuário já existe';return}
+  usuarios.push({login:u,senha:s,tipo:t});
+  localStorage.setItem('usuarios',JSON.stringify(usuarios));
+  msgUser.innerText='Usuário cadastrado com sucesso';
+  novoUser.value='';novaSenhaUser.value='';
+}
+
+function trocarSenha(){
+  const nova=novaSenha.value;
+  if(nova.length<4){msgSenha.innerText='Senha muito curta';return}
+  const i=usuarios.findIndex(u=>u.login===usuarioAtual.login);
+  usuarios[i].senha=nova;
+  localStorage.setItem('usuarios',JSON.stringify(usuarios));
+  msgSenha.innerText='Senha alterada com sucesso';
+}
+
+let contatos=JSON.parse(localStorage.getItem('contatos'))||[];
+let meta=Number(localStorage.getItem('meta'))||0;
+
+function salvarMeta(){meta=Number(meta.value);localStorage.setItem('meta',meta);atualizarDashboard()}
+function contatosVisiveis(){return usuarioAtual.tipo==='admin'?contatos:contatos.filter(c=>c.vendedor===usuarioAtual.login)}
+function totalVendas(){return contatosVisiveis().reduce((s,c)=>s+(Number(c.venda)||0),0)}
+function atualizarDashboard(){
+  const visiveis = contatosVisiveis();
+  const total = visiveis.reduce((s,c)=>s+(Number(c.venda)||0),0);
+  dashTotal.innerText = total;
+  dashMeta.innerText = meta;
+  let p = meta ? Math.min(100,(total/meta)*100) : 0;
+  dashPerc.innerText = p.toFixed(1)+'%';
+  barraMeta.value = p;
+
+  fLead.innerText = visiveis.filter(c=>c.status==='Lead').length;
+  fAtendimento.innerText = visiveis.filter(c=>c.status==='Em Atendimento').length;
+  fVendido.innerText = visiveis.filter(c=>c.status==='Vendido').length;
+}
+
+function adicionarContato(){contatos.push({nome:nome.value,telefone:telefone.value,email:email.value,vendedor:vendedorContato.value,status:status.value,obs:observacao.value,venda:0});localStorage.setItem('contatos',JSON.stringify(contatos));listarContatos()}
+function listarContatos(){
+  listaContatos.innerHTML='';
+  let f=busca.value.toLowerCase();
+  contatosVisiveis()
+    .filter(c=>c.nome.toLowerCase().includes(f))
+    .forEach((c,i)=>{
+      listaContatos.innerHTML+=`
+      <tr>
+        <td><input value="${c.nome}" onchange="editarContato(${i},'nome',this.value)"></td>
+        <td><input value="${c.telefone}" onchange="editarContato(${i},'telefone',this.value)"></td>
+        <td><input value="${c.vendedor}" onchange="editarContato(${i},'vendedor',this.value)"></td>
+        <td>
+          <select onchange="editarContato(${i},'status',this.value)">
+            <option ${c.status==='Lead'?'selected':''}>Lead</option>
+            <option ${c.status==='Em Atendimento'?'selected':''}>Em Atendimento</option>
+            <option ${c.status==='Vendido'?'selected':''}>Vendido</option>
+          </select>
+        </td>
+        <td><input value="${c.obs||''}" onchange="editarContato(${i},'obs',this.value)"></td>
+        <td><input type="number" value="${c.venda||0}" onchange="registrarVenda(${i},this.value)"></td>
+        <td><button onclick="excluirContato(${i})">Excluir</button></td>
+      </tr>`;
+    });
+  atualizarDashboard();
+}
+
+function editarContato(i,campo,valor){
+  let lista=contatosVisiveis();
+  let idx=contatos.indexOf(lista[i]);
+  contatos[idx][campo]=valor;
+  localStorage.setItem('contatos',JSON.stringify(contatos));
+}
+
+function excluirContato(i){
+  if(!confirm('Deseja excluir este contato?'))return;
+  let lista=contatosVisiveis();
+  let idx=contatos.indexOf(lista[i]);
+  contatos.splice(idx,1);
+  localStorage.setItem('contatos',JSON.stringify(contatos));
+  listarContatos();
+}</td><td>${c.telefone}</td><td>${c.vendedor}</td><td>${c.status}</td><td>${c.obs}</td><td><input type='number' value='${c.venda||0}' onchange='registrarVenda(${i},this.value)'></td></tr>`});atualizarDashboard()}
+function registrarVenda(i,v){let lista=contatosVisiveis();let idx=contatos.indexOf(lista[i]);contatos[idx].venda=Number(v);contatos[idx].status='Vendido';localStorage.setItem('contatos',JSON.stringify(contatos));atualizarDashboard()}
+</script>
+</body>
+</html>
